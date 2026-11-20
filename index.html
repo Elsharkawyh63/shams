@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>سما سامي — عيد ميلاد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#27332f;--accent:#a46b47;--muted:#8d7765;--paper:#fff;--dots:#decabb;--art-scale:1;--art-shift-x:0px;--art-shift-y:0px}
+*{box-sizing:border-box}html{scrollbar-width:none}html::-webkit-scrollbar{display:none}body{margin:0;background:#fff;color:var(--ink);font-family:Cairo,Tahoma,sans-serif}body.locked{height:100dvh;overflow:hidden}body.started{overflow-x:hidden;min-height:100dvh}
+.stage{position:fixed;inset:0;overflow:hidden;background:var(--paper);isolation:isolate}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.44;background-image:radial-gradient(circle,var(--dots) .8px,transparent 1px);background-size:24px 24px;mask-image:linear-gradient(100deg,#000,transparent 92%)}.glow{position:absolute;inset:auto -10% -24% 0;height:55%;background:radial-gradient(ellipse,#f8ede3,transparent 66%);pointer-events:none}
+.top{position:absolute;top:clamp(15px,4vh,38px);left:5%;right:5%;z-index:10;display:flex;align-items:center;justify-content:space-between}.brand{font:900 13px Arial,sans-serif;letter-spacing:2.5px;color:#876b55;direction:ltr}.progress{width:140px;height:4px;border-radius:99px;background:#e8ded6;overflow:hidden}.progress i{display:block;width:0;height:100%;background:#b17a52}
+.intro{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:#fff;transition:opacity .7s ease,filter .7s ease,transform .7s ease}.intro.out{opacity:0;filter:blur(14px);transform:scale(1.035);pointer-events:none}.knock{text-align:center;cursor:pointer;user-select:none}.knock h2{font-size:clamp(48px,8vw,100px);line-height:1.35;margin:0;font-weight:900}.knock p{margin:0;color:#9f816a;font-size:14px}.knock span{display:block;font-size:42px;color:#ad754e;animation:pulse 1.3s ease-in-out infinite alternate}@keyframes pulse{to{transform:scale(1.13);opacity:.55}}
+/* The frame element starts entirely beyond the LEFT screen boundary. No parent margin or mask. */
+.character{position:absolute;left:0;bottom:0;width:min(44vw,540px);height:min(94dvh,950px);z-index:3;pointer-events:none;will-change:transform;transform:translate3d(calc(-100vw - 100%),0,0)}.character img{width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block;image-rendering:auto;transform:translate(var(--art-shift-x),var(--art-shift-y)) scale(var(--art-scale));transform-origin:bottom center}
+.copy{position:absolute;right:clamp(30px,9vw,190px);top:22%;height:65%;width:min(44vw,680px);overflow:hidden;z-index:5;pointer-events:none;mask-image:linear-gradient(180deg,transparent 0%,black 8%,black 84%,transparent 100%)}.story{position:absolute;top:17%;right:0;width:100%;will-change:transform}.beat{margin:0 0 clamp(38px,6vh,76px);opacity:0;transform:translateY(24px);will-change:opacity,transform;min-height:70px}.eyebrow{font:800 12px Arial,sans-serif;direction:ltr;text-align:right;letter-spacing:2.5px;color:var(--accent);margin-bottom:10px}.beat h1{font-size:clamp(37px,5.35vw,78px);line-height:1.4;font-weight:900;letter-spacing:-1px;margin:0 0 8px}.beat p{font-size:clamp(16px,1.5vw,22px);color:#806955;line-height:2;margin:0;max-width:600px}.typing:after{content:'|';font-weight:400;color:#b07951;animation:blink .75s step-end infinite}@keyframes blink{50%{opacity:0}}.tip{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;color:#9e704e;direction:ltr;letter-spacing:2px;font:700 12px Arial,sans-serif;z-index:7;opacity:0;transition:opacity .4s}.tip i{font-style:normal;font-size:23px;animation:bob 1.3s infinite}@keyframes bob{50%{transform:translateY(7px)}}.bottom{position:absolute;right:6%;bottom:18px;color:#b09d90;font:11px Arial,sans-serif;direction:ltr;z-index:7}.notice{position:absolute;z-index:10;left:50%;bottom:12%;transform:translateX(-50%);padding:10px 16px;max-width:85%;border-radius:12px;background:#fff8ef;box-shadow:0 5px 20px #0000000c;color:#8b5940;font-size:13px;text-align:center;display:none}.notice.visible{display:block}
+@media(max-width:800px){.character{width:min(83vw,420px);height:63dvh;bottom:0}.copy{top:10%;right:6%;width:88%;height:40%}.story{top:10%}.beat{margin-bottom:32px}.beat h1{font-size:clamp(32px,8.3vw,57px)}.beat p{font-size:clamp(14px,3.5vw,17px);line-height:1.7}.eyebrow{font-size:10px}.tip{bottom:2%;font-size:10px}.bottom{display:none}.notice{bottom:7%}}
+@media(prefers-reduced-motion:reduce){.tip i,.knock span,.typing:after{animation:none}}
+
+/* Intro-peek, quiz, and reaction overlays */
+.peek-layer{position:absolute;inset:0;z-index:23;pointer-events:none;opacity:0;transition:opacity .25s ease}.peek-layer img{position:absolute;left:0;top:0;width:auto;height:100dvh;aspect-ratio:9/16;object-fit:contain;object-position:left center;image-rendering:auto;max-width:none;transform:translateX(var(--peek-offset,0px))}
+.quiz{position:absolute;top:0;bottom:0;right:3vw;width:52vw;z-index:12;display:flex;justify-content:center;align-items:center;padding:8vh 2vw;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s}.quiz.show{opacity:1;visibility:visible;pointer-events:auto}.quiz-inner{width:100%;padding:clamp(24px,3vw,48px);background:#fffffff0;backdrop-filter:blur(18px);border:1px solid #eaddd3;border-radius:28px;box-shadow:0 24px 80px #774e2924;text-align:right}.quiz h2{font-size:clamp(23px,3vw,39px);font-weight:900;line-height:1.6;margin:0 0 24px}.answers{display:grid;gap:12px}.answer{font-family:inherit;background:#fff;border:1.5px solid #e8d8ca;color:#453a33;border-radius:16px;text-align:right;padding:12px 19px;font-size:clamp(16px,1.6vw,20px);font-weight:700;opacity:0;transform:translateY(18px);transition:opacity .55s ease,transform .55s ease,background .25s,border-color .25s;cursor:pointer}.answer.visible{opacity:1;transform:translateY(0)}.answer:hover:not(:disabled){background:#fff4ec;border-color:#bd8b68}.answer:disabled{cursor:default}.answer.correct{background:#edf9ee;border-color:#6cad74}.answer.wrong{background:#fff1ef;border-color:#d68d7d}.feedback{min-height:35px;margin-top:18px;color:#84654f;font-size:18px;font-weight:800}.reaction{position:absolute;inset:0;z-index:11;pointer-events:none;opacity:0;transition:opacity .18s}.reaction{position:absolute;left:0;bottom:0;top:auto;right:auto;width:min(44vw,540px);height:min(94dvh,950px);transform:translate3d(-200vw,0,0)}.reaction img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+@media(max-width:800px){
+/* Always split the viewport horizontally: character LEFT / content RIGHT */
+.character,.reaction{width:48vw;height:78dvh;bottom:0;left:0}
+.copy{right:3vw;left:auto;top:19%;width:49vw;height:66%;overflow:hidden}
+.story{top:10%}.beat h1{font-size:clamp(19px,5.5vw,36px);line-height:1.45}.beat p{font-size:clamp(12px,3vw,16px);line-height:1.7}.beat{margin-bottom:30px}
+.quiz{left:auto;right:2vw;top:13%;bottom:7%;width:53vw;height:auto;padding:0;align-items:center;justify-content:center}
+.quiz-inner{padding:clamp(9px,2.5vw,17px);border-radius:17px;max-height:80dvh;overflow-y:auto;scrollbar-width:thin;background:#ffffffed;box-shadow:0 14px 35px #774e291a}
+.quiz .eyebrow{font-size:8px;letter-spacing:1.2px;margin-bottom:7px}
+.quiz h2{font-size:clamp(13px,3.7vw,18px);line-height:1.6;margin:0 0 12px}
+.answers{gap:8px}.answer{font-size:clamp(11px,3vw,14px);padding:9px 8px;border-radius:11px;line-height:1.5;min-height:37px}
+.feedback{font-size:12px;min-height:20px;margin-top:9px}
+.tip{bottom:2%;font-size:10px}.bottom{display:none}.notice{bottom:7%}
+}
+@media(max-width:380px){.quiz{width:55vw;right:1vw}.quiz-inner{padding:8px}.quiz h2{font-size:13px}.answer{font-size:11px;padding:7px 6px}.character,.reaction{width:48vw}}
+
+
+/* V10: Always two parallel layers, even on small mobile screens. */
+.character{z-index:16!important;pointer-events:none;}
+.reaction{z-index:17!important;pointer-events:none;}
+.copy{z-index:8;mask-image:linear-gradient(to bottom,transparent 0%,black 10%,black 88%,transparent 100%)}
+.quiz{z-index:11;}
+.story{top:0;right:0;left:0;transform:translateY(0);}
+.beat{opacity:1!important;transform:none!important;min-height:clamp(210px,35vh,380px);margin:0;padding:8px 0 25px;}
+.beat [data-title],.beat [data-body]{white-space:pre-wrap;overflow-wrap:anywhere;}
+.beat h1,.beat p{margin-top:0;}
+@media(max-width:800px){
+ .character,.reaction{width:clamp(210px,65vw,420px);height:clamp(400px,86dvh,820px);bottom:0;left:-5vw;}
+ .copy{right:2vw;left:auto;top:15%;width:49vw;height:71%;}
+ .beat{min-height:clamp(170px,33dvh,315px);padding-top:8px;}
+ .beat h1{font-size:clamp(18px,5.0vw,31px);}
+ .beat p{font-size:clamp(12px,3vw,16px);}
+ .quiz{right:1vw;left:auto;top:11%;bottom:5%;width:52vw;z-index:11;}
+ .quiz-inner{backdrop-filter:none;background:#fffffff2;}
+}
+@media(max-width:420px){
+ .character,.reaction{width:69vw;height:85dvh;left:-10vw;}
+ .copy{width:50vw;right:2vw;top:15%;height:70%;}
+ .quiz{width:52vw;right:1vw;}
+ .quiz-inner{padding:10px;}
+ .quiz h2{font-size:clamp(12px,3.55vw,17px)}
+ .answer{font-size:clamp(10px,2.75vw,13px)}
+}
+
+/* V11: quiz stays to the RIGHT of Sama; long answers remain scrollable on narrow devices. */
+.quiz-inner{max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.quiz-complete{font-size:clamp(20px,3vw,36px);font-weight:900;color:#9b6a48;padding:12px 0}
+.quiz-complete[hidden]{display:none}
+.answer:focus-visible{outline:3px solid #b07d5b;outline-offset:2px}
+@media(max-width:800px){
+ .quiz{right:1.5vw;width:54vw}
+ .quiz-inner{max-height:82dvh;padding:clamp(9px,2.5vw,16px)}
+ .quiz h2{font-size:clamp(12px,3.45vw,18px);line-height:1.55}
+ .answer{font-size:clamp(10px,2.65vw,14px);line-height:1.5;overflow-wrap:anywhere}
+}
+
+/* V12: The user's exact five story lines, without additional scene labels. */
+.top{justify-content:flex-end}
+.beat h1{font-size:clamp(31px,4.4vw,63px);line-height:1.52;letter-spacing:0}
+.beat p{font-size:clamp(16px,1.55vw,22px);font-weight:600;line-height:1.9}
+#b3 h1{font-size:clamp(21px,2.55vw,36px);font-weight:800;line-height:1.85}
+#b3 p{font-size:clamp(17px,1.65vw,23px);line-height:1.9}
+#b4 h1{font-size:clamp(25px,3.2vw,46px)}
+@media(max-width:800px){
+ .beat h1{font-size:clamp(18px,4.45vw,31px);line-height:1.5}
+ .beat p{font-size:clamp(12px,2.9vw,16px);line-height:1.7}
+ #b3 h1{font-size:clamp(14px,3.25vw,21px);line-height:1.7}
+ #b3 p{font-size:clamp(12px,2.75vw,16px);line-height:1.7}
+ #b4 h1{font-size:clamp(16px,4vw,26px)}
+}
+</style></head>
+<body class="locked"><main class="stage">
+<div class="glow"></div><div class="top"><div class="progress"><i id="bar"></i></div></div>
+<div class="intro" id="intro"><div class="knock" id="knock"><h2>خبط مرتين</h2></div></div>
+<div class="peek-layer" id="peekLayer"><img id="peekFrame" alt="سما بتطل من جنب الشاشة"></div>
+<div class="character" id="character"><img id="frame" alt="سما سامي"></div>
+<div class="copy" id="copy"><div class="story" id="story">
+<article class="beat" id="b0"><h1 data-title></h1><p data-body></p></article>
+<article class="beat" id="b1"><h1 data-title></h1><p data-body></p></article>
+<article class="beat" id="b2"><h1 data-title></h1><p data-body></p></article>
+<article class="beat" id="b3"><h1 data-title></h1><p data-body></p></article>
+<article class="beat" id="b4"><h1 data-title></h1><p data-body></p></article>
+</div></div>
+<section class="quiz" id="quiz" aria-label="أسئلة سما" aria-live="off"><div class="quiz-inner"><h2 id="quizQuestion"></h2><div class="answers" id="answers"></div><div id="feedback" class="feedback" aria-live="polite"></div><div class="quiz-complete" id="quizComplete" hidden>خلصتي العشر أسئلة! 💛</div></div></section><div class="reaction" id="reaction"><img id="reactionFrame" alt="" aria-hidden="true"></div>
+<div class="tip" id="tip"><i>↓</i><span>SCROLL DOWN</span></div><div class="notice" id="notice"></div>
+</main><script>
+(()=>{'use strict';
+// Adjust the five counts if your PNG folders have different frame counts.
+const CONFIG={extension:'webp',firstNumber:1,digits:3,scrollPixelsPerClip:2600,intro:{folder:'00_intro_peek',count:88},reactions:{wrong:{folder:'06_wrong_reaction',count:80},correct:{folder:'07_correct_reaction',count:80}},clips:[{folder:'01_walk_in',count:80},{folder:'02_point_down',count:80},{folder:'03_sit_down',count:80},{folder:'04_sitting_idle',count:80},{folder:'05_introduction',count:80}]};
+const $=id=>document.getElementById(id),els={frame:$('frame'),character:$('character'),intro:$('intro'),bar:$('bar'),tip:$('tip'),notice:$('notice'),story:$('story'),copy:$('copy')};
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),ease=x=>x*x*(3-2*x),segment=(p,a,b)=>clamp((p-a)/(b-a));
+const path=(folder,i)=>`frames/${folder}/${String(i+CONFIG.firstNumber).padStart(CONFIG.digits,'0')}.${CONFIG.extension}`;
+let active=false,starting=false,quizOpen=false,quizShown=false,current=0,target=0,autoEntrance=false,autoStart=0,autoFrom=0,autoTo=0,wanted='',lastKey='',lastTap=0,errorShown=false;let reactionRAF=null,answerTimers=[],nextQuestionTimer=null,questionIndex=0,questionLocked=false,reactionGeneration=0;const quiz=$('quiz'),answersHost=$('answers'),feedback=$('feedback'),reaction=$('reaction'),reactionFrame=$('reactionFrame'),peekLayer=$('peekLayer'),peekFrame=$('peekFrame');
+const imgs=new Map();
+function imgFor(folder,i){const k=folder+':'+i;if(imgs.has(k))return imgs.get(k);const im=new Image();im.decoding='async';im.src=path(folder,i);imgs.set(k,im);return im}
+function paint(folder,i){const key=folder+':'+i;wanted=key;if(lastKey===key)return;const im=imgFor(folder,i);const assign=()=>{if(wanted===key){els.frame.src=im.src;lastKey=key}};if(im.complete&&im.naturalWidth)assign();else{im.addEventListener('load',assign,{once:true});im.addEventListener('error',()=>{if(!errorShown){errorShown=true;els.notice.textContent='مش لاقي ملفات WebP. اتأكد من فولدر frames، أسماء المجلدات، وترقيم الصور.';els.notice.classList.add('visible')}} ,{once:true})}}
+// V10 text is revealed letter-by-letter, accumulates, and scrolls upward naturally.
+// Edit TEXT_CONTENT to change the story; descriptions can be left empty.
+const TEXT_CONTENT=[
+ {title:"ايه يا شرقوووووو",body:"انزلي لتحت"},
+ {title:"كل سنة و انتي طيبة يا سما سامي",body:"انا قولت مش هجبلك تورتة بس عملت الموقع دا"},
+ {title:"دي سما سامي",body:"( الشمس )"},
+ {title:"في يوم من الايام كانت بتشتغل في شركة كامبين و قضت فيها احلى سنة في حياتها",body:"بغض النظر عن اخر 9 شهور فيها كان فيه شوية مصايب"},
+ {title:"عملتلك كام سؤال كده عشان اعرف لسة فاكرة كامبين ولا نسيتيها",body:""}
+];
+const articles=Array.from(els.story.querySelectorAll('.beat'));
+const words=articles.map((article,i)=>({
+ title:article.querySelector('[data-title]'),body:article.querySelector('[data-body]'),
+ fullTitle:TEXT_CONTENT[i].title,fullBody:TEXT_CONTENT[i].body
+}));
+function revealLetters(el,text,t){
+ if(!el)return;
+ const n=Math.max(0,Math.min(text.length,Math.floor(clamp(t)*text.length+0.001)));
+ const s=text.slice(0,n);
+ if(el.textContent!==s)el.textContent=s;
+}
+// Ten user-authored questions: the next question unlocks only after the correct answer.
+const QUESTIONS=[
+  {
+    "question": "لو اتحطيت في أصعب موقف في حياتك ولازم تقرر، هتقرر بناءً على إيه؟",
+    "options": [
+      "إيمان بعقلك",
+      "إيمان بقلبك",
+      "إيمان برأي حد جنبك",
+      "إيمان يحيى"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "أفضل وقت لشرب الشاي ؟",
+    "options": [
+      "الضهرية",
+      "العصرية",
+      "الضحوية",
+      "الفجرية"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "كل صحابك معتمدين عليكي تخرجيهم في يوم و تظبطي كل حاجة هتخرجيهم فين ؟",
+    "options": [
+      "الكوربة",
+      "وسط البلد",
+      "دريم بارك",
+      "شارع الشمس"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "اكمل الجملة : كل دول أيرو و غارو علشان ...",
+    "options": [
+      "يغوروا في داهية",
+      "حمو التوب",
+      "سما سامي التوب",
+      "صاصا التوب"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "حد عايز يشتري حاجة من براند جامد اوي هتختاري ايه ؟",
+    "options": [
+      "Town Team",
+      "Abibas",
+      "M'troush",
+      "M'fdouh"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "مين أكتر Dop شايفة انه شغل على مستوى عالى ؟",
+    "options": [
+      "زياد الكاشف",
+      "أحمد يسري الغلابة",
+      "عبادي",
+      "شيبو الطاعون"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "مين أكتر حد صادق و ثقة و أمين و نضيف اتعاملتي معاه في 2026 ؟",
+    "options": [
+      "فاطمة اسامة",
+      "ندى اشرف",
+      "بوسي",
+      "هند فاشون"
+    ],
+    "correct": 1
+  },
+  {
+    "question": "انتي دلوقتي قدام قنبلة و بتتقمصي دور خبيرة المتفجرات ( منة منوسة ) و لازم تتصرفي بسرعة قبل ما القنبلة تنفجر ؟",
+    "options": [
+      "هتفكي السلك اللي بيوقف القنبلة",
+      "هتفجري القنبلة و تخلصي",
+      "هتهربي",
+      "مش عارفة"
+    ],
+    "correct": 3
+  },
+  {
+    "question": "حصل زلزال قوي و الناس كلها مستخبية وانتي مستخبية في مطعم , هتطلبي ايه ؟",
+    "options": [
+      "فول اسكندراني",
+      "طعمية",
+      "بطاطس كاتشب بس",
+      "جبنة بالطماطم"
+    ],
+    "correct": 2
+  },
+  {
+    "question": "انتي دلوقتي عندك 4 اوفرات شغل و لازم تختاري اوفر واحد بس هتختاري ايه ؟",
+    "options": [
+      "تشتغلي لوحدك في اكتوبر بعيد عن كل صحابك بمرتب 20 الف جنية",
+      "تشتغلي مع فيروز في اكتوبر بمرتب 20 الف جنية",
+      "تشتغلي مع بهاء بمرتب 20 الف جنية",
+      "تشتغلي في كامبين بمرتب 7500 جنية و بيتخصم منك 1000 جنية تأخيرات كل شهر"
+    ],
+    "correct": 3
+  }
+];
+function stopQuestionTimers(){answerTimers.forEach(clearTimeout);answerTimers=[];if(nextQuestionTimer){clearTimeout(nextQuestionTimer);nextQuestionTimer=null;}}
+function resetReaction(){
+ reactionGeneration++;if(reactionRAF)cancelAnimationFrame(reactionRAF);reactionRAF=null;
+ reaction.style.opacity='0';reactionFrame.removeAttribute('src');els.character.style.opacity='1';
+}
+function renderQuestion(){
+ stopQuestionTimers();resetReaction();questionLocked=false;feedback.textContent='';
+ $('quizComplete').hidden=true;
+ 
+ $('quizQuestion').textContent=QUESTIONS[questionIndex].question;
+ answersHost.replaceChildren();
+ QUESTIONS[questionIndex].options.forEach((value,i)=>{
+  const button=document.createElement('button');button.type='button';button.className='answer';button.textContent=value;
+  button.disabled=true;button.addEventListener('click',()=>checkAnswer(i));answersHost.append(button);
+  answerTimers.push(setTimeout(()=>{if(!quizShown||questionLocked)return;button.classList.add('visible');button.disabled=false;},250+i*1000));
+ });
+ // Each question begins at the top of the content area, even on mobile.
+ const pane=quiz.querySelector('.quiz-inner');pane.scrollTop=0;
+}
+function showQuiz(){if(quizShown)return;quizShown=true;quizOpen=true;quiz.classList.add('show');els.character.style.opacity='1';renderQuestion();}
+function hideQuiz(){if(!quizShown)return;quizShown=false;quizOpen=false;quiz.classList.remove('show');stopQuestionTimers();resetReaction();feedback.textContent='';}
+function playReaction(kind,onFinish){
+ resetReaction();const generation=reactionGeneration;const cfg=CONFIG.reactions[kind];
+ const duration=4000;let began=null;let lastIdx=-1;
+ function tick(t){
+  if(generation!==reactionGeneration||!quizShown)return;
+  if(began===null)began=t;
+  const p=clamp((t-began)/duration),index=Math.min(cfg.count-1,Math.floor(p*(cfg.count-1)));
+  if(index!==lastIdx){lastIdx=index;const im=imgFor(cfg.folder,index);
+    if(im.complete&&im.naturalWidth){reactionFrame.src=im.src;reaction.style.opacity='1';els.character.style.opacity='0';}
+    else im.addEventListener('load',()=>{if(generation===reactionGeneration&&quizShown&&index===lastIdx){reactionFrame.src=im.src;reaction.style.opacity='1';els.character.style.opacity='0';}},{once:true});
+  }
+  if(p<1)reactionRAF=requestAnimationFrame(tick);
+  else{reactionRAF=null;resetReaction();if(quizShown&&typeof onFinish==='function')onFinish();}
+ }
+ reactionRAF=requestAnimationFrame(tick);
+}
+function checkAnswer(index){
+ if(!quizShown||questionLocked)return;
+ const question=QUESTIONS[questionIndex],correct=index===question.correct;
+ questionLocked=true;stopQuestionTimers();
+ const buttons=Array.from(answersHost.querySelectorAll('.answer'));
+ buttons.forEach(b=>b.disabled=true);
+ buttons[index].classList.add(correct?'correct':'wrong');
+ feedback.textContent=correct?'إجابة صح! 💛':'مش هي دي، جرّبي تاني 🤍';
+ playReaction(correct?'correct':'wrong',()=>{
+  if(!quizShown)return;
+  if(correct){
+   if(questionIndex<QUESTIONS.length-1){questionIndex++;renderQuestion();}
+   else{answersHost.replaceChildren();$('quizQuestion').textContent='';$('quizComplete').hidden=false;feedback.textContent='';questionLocked=true;}
+  }else{
+   questionLocked=false;
+   buttons.forEach((b,i)=>{b.disabled=!b.classList.contains('visible');b.classList.remove('wrong');});
+  }
+ });
+}
+function playPeekThenStart(){
+ if(starting||active)return;starting=true;els.intro.classList.add('out');peekLayer.style.opacity='1';let first=null;
+ function tick(t){if(first===null)first=t;const idx=Math.min(CONFIG.intro.count-1,Math.floor((t-first)/(4000/CONFIG.intro.count)));
+ const im=imgFor(CONFIG.intro.folder,idx);if(im.complete&&im.naturalWidth)peekFrame.src=im.src;else im.addEventListener('load',()=>{if(!active)peekFrame.src=im.src},{once:true});
+ if(t-first<4000)requestAnimationFrame(tick);else{peekLayer.style.opacity='0';setTimeout(()=>{peekLayer.style.display='none';startScroll()},300);}}
+ requestAnimationFrame(tick);
+}
+function render(){
+ if(!active)return;
+ const max=CONFIG.clips.length*CONFIG.scrollPixelsPerClip;
+ const p=clamp(current/Math.max(1,max));
+ const clipPos=Math.min(CONFIG.clips.length-0.000001,p*CONFIG.clips.length);
+ const ci=Math.floor(clipPos);
+ const clipProgress=clamp(clipPos-ci);
+ const clip=CONFIG.clips[ci];
+ const local=ease(clipProgress);
+ els.bar.style.width=(p*100)+'%';
+ if(p>=.9995)showQuiz();else if(quizShown)hideQuiz();
+ const fi=Math.min(clip.count-1,Math.floor(local*(clip.count-1)));
+ paint(clip.folder,fi);
+ for(let n=Math.max(0,fi-2);n<=Math.min(clip.count-1,fi+4);n++)imgFor(clip.folder,n);
+ if(fi>=clip.count-6&&ci<CONFIG.clips.length-1){for(let n=0;n<5;n++)imgFor(CONFIG.clips[ci+1].folder,n);}
+ // Character stays left. Visual entrance comes from beyond left screen edge.
+ const enter=ease(segment(p,0,.18));
+ const width=els.character.getBoundingClientRect().width;
+ const endX=innerWidth>800?innerWidth*.05:innerWidth*.035;
+ const beginX=-width-40;
+ const charX=beginX+(endX-beginX)*enter;
+ els.character.style.transform=`translate3d(${charX}px,0,0)`;
+ reaction.style.transform=els.character.style.transform;
+ // Each clip reveals its caption over the first 65%, then holds it.
+ // Captions already completed stay in the page; only the column shifts upward.
+ words.forEach((w,i)=>{
+  const k=i<ci?1:i>ci?0:segment(clipProgress,i===0?.28:.08,.68);
+  const firstPart=w.fullTitle?Math.min(.70,Math.max(.2,w.fullTitle.length/(w.fullTitle.length+w.fullBody.length||1))):0;
+  if(w.fullTitle&&w.fullBody){
+   revealLetters(w.title,w.fullTitle,segment(k,0,firstPart));
+   revealLetters(w.body,w.fullBody,segment(k,firstPart,1));
+  }else{
+   revealLetters(w.title,w.fullTitle,k);
+   revealLetters(w.body,w.fullBody,k);
+  }
+ });
+ // Hold the fully written text long enough to read; move up near clip end.
+ const lift=ease(segment(clipProgress,.78,.99));
+ const here=articles[ci].offsetTop;
+ const viewH=els.copy.clientHeight;
+ const next=ci===articles.length-1 ? here+articles[ci].offsetHeight+viewH*.7 : articles[ci+1].offsetTop;
+ const position=here+(next-here)*lift;
+ els.story.style.transform=`translateY(${Math.round(viewH*.22-position)}px)`;
+ els.tip.style.opacity=String(1-segment(p,.03,.19));
+}
+// Native wheel/touch scroll is never converted into automatic whole-scene playback.
+// Smooth interpolation follows the actual scroll offset in both directions.
+function loop(){
+ if(active){
+  current+=(target-current)*.16;
+  if(Math.abs(target-current)<.14)current=target;
+  render();
+ }
+ requestAnimationFrame(loop);
+}
+function startScroll(){if(active)return;active=true;els.intro.classList.add('out');document.body.classList.replace('locked','started');document.body.style.height=`calc(100dvh + ${CONFIG.clips.length*CONFIG.scrollPixelsPerClip}px)`;scrollTo(0,0);current=target=0;render()}
+document.addEventListener('dblclick',playPeekThenStart);
+document.addEventListener('touchend',()=>{if(active||starting)return;const t=Date.now();if(t-lastTap<330)playPeekThenStart();lastTap=t},{passive:true});
+document.addEventListener('keydown',e=>{if(!active&&(e.key==='Enter'||e.key===' ')){e.preventDefault();playPeekThenStart()}});
+window.addEventListener('scroll',()=>{if(active)target=clamp(window.scrollY,0,CONFIG.clips.length*CONFIG.scrollPixelsPerClip)},{passive:true});
+addEventListener('resize',()=>{if(active){target=clamp(scrollY,0,CONFIG.clips.length*CONFIG.scrollPixelsPerClip);render()}});
+imgFor(CONFIG.intro.folder,0);imgFor(CONFIG.clips[0].folder,0);requestAnimationFrame(loop);
+})();
+</script></body></html>

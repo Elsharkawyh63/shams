@@ -86,6 +86,13 @@
  #b3 p{font-size:clamp(12px,2.75vw,16px);line-height:1.7}
  #b4 h1{font-size:clamp(16px,4vw,26px)}
 }
+
+/* V13: a selection is an instant tap, not a persistent answer state. */
+.answer { -webkit-tap-highlight-color: transparent; }
+.answer.correct,.answer.wrong { transition: background .15s ease,border-color .15s ease,transform .2s ease,opacity .4s ease; }
+.answer:active:not(:disabled) { transform: translateY(0) scale(.975); }
+.answer:focus:not(:focus-visible) { outline:none; }
+.reaction { transition:none!important; }
 </style></head>
 <body class="locked"><main class="stage">
 <div class="glow"></div><div class="top"><div class="progress"><i id="bar"></i></div></div>
@@ -108,7 +115,7 @@ const CONFIG={extension:'webp',firstNumber:1,digits:3,scrollPixelsPerClip:2600,i
 const $=id=>document.getElementById(id),els={frame:$('frame'),character:$('character'),intro:$('intro'),bar:$('bar'),tip:$('tip'),notice:$('notice'),story:$('story'),copy:$('copy')};
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),ease=x=>x*x*(3-2*x),segment=(p,a,b)=>clamp((p-a)/(b-a));
 const path=(folder,i)=>`frames/${folder}/${String(i+CONFIG.firstNumber).padStart(CONFIG.digits,'0')}.${CONFIG.extension}`;
-let active=false,starting=false,quizOpen=false,quizShown=false,current=0,target=0,autoEntrance=false,autoStart=0,autoFrom=0,autoTo=0,wanted='',lastKey='',lastTap=0,errorShown=false;let reactionRAF=null,answerTimers=[],nextQuestionTimer=null,questionIndex=0,questionLocked=false,reactionGeneration=0;const quiz=$('quiz'),answersHost=$('answers'),feedback=$('feedback'),reaction=$('reaction'),reactionFrame=$('reactionFrame'),peekLayer=$('peekLayer'),peekFrame=$('peekFrame');
+let active=false,starting=false,quizOpen=false,quizShown=false,current=0,target=0,autoEntrance=false,autoStart=0,autoFrom=0,autoTo=0,wanted='',lastKey='',lastTap=0,errorShown=false;let reactionRAF=null,answerTimers=[],nextQuestionTimer=null,questionIndex=0,questionLocked=false,reactionGeneration=0,reactionToken=0;const quiz=$('quiz'),answersHost=$('answers'),feedback=$('feedback'),reaction=$('reaction'),reactionFrame=$('reactionFrame'),peekLayer=$('peekLayer'),peekFrame=$('peekFrame');
 const imgs=new Map();
 function imgFor(folder,i){const k=folder+':'+i;if(imgs.has(k))return imgs.get(k);const im=new Image();im.decoding='async';im.src=path(folder,i);imgs.set(k,im);return im}
 function paint(folder,i){const key=folder+':'+i;wanted=key;if(lastKey===key)return;const im=imgFor(folder,i);const assign=()=>{if(wanted===key){els.frame.src=im.src;lastKey=key}};if(im.complete&&im.naturalWidth)assign();else{im.addEventListener('load',assign,{once:true});im.addEventListener('error',()=>{if(!errorShown){errorShown=true;els.notice.textContent='مش لاقي ملفات WebP. اتأكد من فولدر frames، أسماء المجلدات، وترقيم الصور.';els.notice.classList.add('visible')}} ,{once:true})}}
@@ -235,60 +242,122 @@ const QUESTIONS=[
     "correct": 3
   }
 ];
+// Response phrases are reused only after a full shuffled round.
+const REPLIES={
+ correct:['اطلب دلوقتي','alone','استر يا دولي','اللي فاكر قلبي طيب كل سنة و هو طيب','نصر الثورة معاك ياسطى','توك توك'],
+ wrong:['غبية','هه غلط','هههههه غلط','دا عبدالرحمن ممكن يجاوبها صح دي','دريم منصور','انتي شايفة كده ؟','ركز يادولي']
+};
+const replyDeck={correct:[],wrong:[]};
+function responsePhrase(kind){
+ if(!replyDeck[kind].length){
+   replyDeck[kind]=[...REPLIES[kind]];
+   for(let i=replyDeck[kind].length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[replyDeck[kind][i],replyDeck[kind][j]]=[replyDeck[kind][j],replyDeck[kind][i]];}
+ }
+ return replyDeck[kind].pop();
+}
+// Promise-based loading means the first answer can never skip its reaction
+// just because the browser has not fetched the first frames yet.
+const reactionPrepared=new Map();
+function prepareReaction(kind){
+ if(reactionPrepared.has(kind))return reactionPrepared.get(kind);
+ const cfg=CONFIG.reactions[kind];
+ const task=Promise.all(Array.from({length:cfg.count},(_,i)=>new Promise(resolve=>{
+   const im=imgFor(cfg.folder,i);
+   if(im.complete)return resolve(im.naturalWidth>0);
+   im.addEventListener('load',()=>resolve(true),{once:true});
+   im.addEventListener('error',()=>resolve(false),{once:true});
+ }))).then(results=>results.every(Boolean));
+ reactionPrepared.set(kind,task);
+ return task;
+}
 function stopQuestionTimers(){answerTimers.forEach(clearTimeout);answerTimers=[];if(nextQuestionTimer){clearTimeout(nextQuestionTimer);nextQuestionTimer=null;}}
 function resetReaction(){
- reactionGeneration++;if(reactionRAF)cancelAnimationFrame(reactionRAF);reactionRAF=null;
- reaction.style.opacity='0';reactionFrame.removeAttribute('src');els.character.style.opacity='1';
+ reactionGeneration++;reactionToken++;
+ if(reactionRAF)cancelAnimationFrame(reactionRAF);reactionRAF=null;
+ // Restore the stable character and remove the overlay in one paint.
+ els.character.style.opacity='1';
+ reaction.style.opacity='0';
+ reactionFrame.removeAttribute('src');
 }
 function renderQuestion(){
  stopQuestionTimers();resetReaction();questionLocked=false;feedback.textContent='';
  $('quizComplete').hidden=true;
- 
  $('quizQuestion').textContent=QUESTIONS[questionIndex].question;
  answersHost.replaceChildren();
  QUESTIONS[questionIndex].options.forEach((value,i)=>{
-  const button=document.createElement('button');button.type='button';button.className='answer';button.textContent=value;
-  button.disabled=true;button.addEventListener('click',()=>checkAnswer(i));answersHost.append(button);
-  answerTimers.push(setTimeout(()=>{if(!quizShown||questionLocked)return;button.classList.add('visible');button.disabled=false;},250+i*1000));
+   const button=document.createElement('button');
+   button.type='button';button.className='answer';button.textContent=value;
+   button.disabled=true;button.addEventListener('click',()=>checkAnswer(i));answersHost.append(button);
+   answerTimers.push(setTimeout(()=>{if(!quizShown||questionLocked)return;button.classList.add('visible');button.disabled=false;},250+i*1000));
  });
- // Each question begins at the top of the content area, even on mobile.
  const pane=quiz.querySelector('.quiz-inner');pane.scrollTop=0;
 }
-function showQuiz(){if(quizShown)return;quizShown=true;quizOpen=true;quiz.classList.add('show');els.character.style.opacity='1';renderQuestion();}
-function hideQuiz(){if(!quizShown)return;quizShown=false;quizOpen=false;quiz.classList.remove('show');stopQuestionTimers();resetReaction();feedback.textContent='';}
-function playReaction(kind,onFinish){
- resetReaction();const generation=reactionGeneration;const cfg=CONFIG.reactions[kind];
- const duration=4000;let began=null;let lastIdx=-1;
+function showQuiz(){
+ if(quizShown)return;quizShown=true;quizOpen=true;
+ quiz.classList.add('show');els.character.style.opacity='1';
+ renderQuestion();
+ prepareReaction('correct');prepareReaction('wrong');
+}
+function hideQuiz(){
+ if(!quizShown)return;
+ quizShown=false;quizOpen=false;quiz.classList.remove('show');
+ stopQuestionTimers();resetReaction();feedback.textContent='';
+}
+async function playReaction(kind,onFinish){
+ resetReaction();const generation=reactionGeneration;
+ const cfg=CONFIG.reactions[kind];
+ const loaded=await prepareReaction(kind);
+ if(generation!==reactionGeneration||!quizShown)return;
+ if(!loaded){
+   // Fail gracefully without ever hiding Sama or freezing the quiz.
+   feedback.textContent+=' — ملفات الرياكشن مش متاحة';
+   if(typeof onFinish==='function')onFinish();
+   return;
+ }
+ const first=imgFor(cfg.folder,0);
+ reactionFrame.src=first.src;
+ // First frame is already fully loaded. No empty-image flash.
+ reaction.style.transform=els.character.style.transform;
+ reaction.style.opacity='1';
+ els.character.style.opacity='0';
+ let began=null,lastIdx=0;
  function tick(t){
-  if(generation!==reactionGeneration||!quizShown)return;
-  if(began===null)began=t;
-  const p=clamp((t-began)/duration),index=Math.min(cfg.count-1,Math.floor(p*(cfg.count-1)));
-  if(index!==lastIdx){lastIdx=index;const im=imgFor(cfg.folder,index);
-    if(im.complete&&im.naturalWidth){reactionFrame.src=im.src;reaction.style.opacity='1';els.character.style.opacity='0';}
-    else im.addEventListener('load',()=>{if(generation===reactionGeneration&&quizShown&&index===lastIdx){reactionFrame.src=im.src;reaction.style.opacity='1';els.character.style.opacity='0';}},{once:true});
-  }
-  if(p<1)reactionRAF=requestAnimationFrame(tick);
-  else{reactionRAF=null;resetReaction();if(quizShown&&typeof onFinish==='function')onFinish();}
+   if(generation!==reactionGeneration||!quizShown)return;
+   if(began===null)began=t;
+   const progress=clamp((t-began)/4000);
+   const index=Math.min(cfg.count-1,Math.floor(progress*(cfg.count-1)));
+   if(index!==lastIdx){lastIdx=index;reactionFrame.src=imgFor(cfg.folder,index).src;}
+   if(progress<1)reactionRAF=requestAnimationFrame(tick);
+   else{
+     reactionRAF=null;
+     // Restore the original character before the next question is shown.
+     resetReaction();
+     if(quizShown&&typeof onFinish==='function')onFinish();
+   }
  }
  reactionRAF=requestAnimationFrame(tick);
 }
 function checkAnswer(index){
  if(!quizShown||questionLocked)return;
  const question=QUESTIONS[questionIndex],correct=index===question.correct;
+ const kind=correct?'correct':'wrong';
  questionLocked=true;stopQuestionTimers();
  const buttons=Array.from(answersHost.querySelectorAll('.answer'));
  buttons.forEach(b=>b.disabled=true);
- buttons[index].classList.add(correct?'correct':'wrong');
- feedback.textContent=correct?'إجابة صح! 💛':'مش هي دي، جرّبي تاني 🤍';
- playReaction(correct?'correct':'wrong',()=>{
-  if(!quizShown)return;
-  if(correct){
-   if(questionIndex<QUESTIONS.length-1){questionIndex++;renderQuestion();}
-   else{answersHost.replaceChildren();$('quizQuestion').textContent='';$('quizComplete').hidden=false;feedback.textContent='';questionLocked=true;}
-  }else{
-   questionLocked=false;
-   buttons.forEach((b,i)=>{b.disabled=!b.classList.contains('visible');b.classList.remove('wrong');});
-  }
+ const selected=buttons[index];
+ selected.blur();selected.classList.add(kind);
+ // A short click flash; clear *before* the reaction or next question finishes.
+ answerTimers.push(setTimeout(()=>selected.classList.remove('correct','wrong'),280));
+ feedback.textContent=responsePhrase(kind);
+ playReaction(kind,()=>{
+   if(!quizShown)return;
+   if(correct){
+     if(questionIndex<QUESTIONS.length-1){questionIndex++;renderQuestion();}
+     else{answersHost.replaceChildren();$('quizQuestion').textContent='';$('quizComplete').hidden=false;feedback.textContent='';questionLocked=true;}
+   }else{
+     questionLocked=false;
+     buttons.forEach(b=>{b.disabled=!b.classList.contains('visible');b.classList.remove('correct','wrong');});
+   }
  });
 }
 function playPeekThenStart(){
@@ -308,6 +377,7 @@ function render(){
  const clip=CONFIG.clips[ci];
  const local=ease(clipProgress);
  els.bar.style.width=(p*100)+'%';
+ if(p>.78&&!reactionPrepared.size){prepareReaction('correct');prepareReaction('wrong');}
  if(p>=.9995)showQuiz();else if(quizShown)hideQuiz();
  const fi=Math.min(clip.count-1,Math.floor(local*(clip.count-1)));
  paint(clip.folder,fi);
